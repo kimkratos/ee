@@ -39,7 +39,7 @@ def chat():
             else:
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
-                file_url = url_for('uploaded_file', filename=f'music/{filename}')
+                file_url = url_for('uploaded_file', filename=filename)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if file_url:
