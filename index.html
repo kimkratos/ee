@@ -130,6 +130,7 @@
             musicItems.forEach((item, index) => {
                 item.addEventListener('click', () => {
                     playSong(index);
+                    currentSongIndex = index;
                 });
             });
 
