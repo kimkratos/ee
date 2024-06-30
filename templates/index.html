@@ -23,20 +23,29 @@
             font-size: 1.5em;
             text-align: center;
         }
-        a {
+        .chat-button {
             text-align: center;
             display: block;
-            margin-top: 20px;
+            margin: 20px 0;
             font-size: 1.2em;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .chat-button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
+    <a href="{{ url_for('chat') }}" class="chat-button">Chat Room</a>
     <h1>Stream Video</h1>
     <video controls>
         <source src="{{ video_url }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-    <a href="{{ url_for('chat') }}">Chat Room</a>
 </body>
 </html>
