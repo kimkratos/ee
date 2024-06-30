@@ -1,162 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Streaming</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        video {
-            max-width: 100%;
-            height: auto;
-        }
-        h1 {
-            font-size: 1.5em;
-            text-align: center;
-        }
-        .chat-button {
-            text-align: center;
-            display: block;
-            margin: 20px 0;
-            font-size: 1.2em;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .chat-button:hover {
-            background-color: #45a049;
-        }
-        .music-list {
-            display: none;
-            list-style-type: none;
-            padding: 0;
-            margin: 10px 0;
-            width: 100%;
-        }
-        .music-list li {
-            padding: 5px;
-            text-align: center;
-            background-color: #f0f0f0;
-            margin: 5px 0;
-            cursor: pointer;
-        }
-        .music-list li:hover {
-            background-color: #ddd;
-        }
-        .music-controls {
-            display: flex;
-            justify-content: center;
-            margin: 10px 0;
-        }
-        .music-controls button {
-            margin: 0 5px;
-            padding: 5px 10px;
-        }
-    </style>
-</head>
-<body>
-    <a href="{{ url_for('chat') }}" class="chat-button">Chat Room</a>
-    <h1>Stream Video</h1>
-    <video controls>
-        <source src="{{ video_url }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-    <button id="toggle-music-list">Show Music List</button>
-    <ul id="music-list" class="music-list">
-        {% for music_file in music_files %}
-            <li data-url="{{ url_for('uploaded_file', filename=music_file) }}">{{ music_file }}</li>
-        {% endfor %}
-    </ul>
-    <div class="music-controls">
-        <button id="prev-song">Previous</button>
-        <button id="play-pause">Play/Pause</button>
-        <button id="next-song">Next</button>
-    </div>
-    <audio id="background-music" autoplay loop muted></audio>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const musicList = document.getElementById('music-list');
-            const toggleMusicListBtn = document.getElementById('toggle-music-list');
-            const backgroundMusic = document.getElementById('background-music');
-            const playPauseBtn = document.getElementById('play-pause');
-            const prevSongBtn = document.getElementById('prev-song');
-            const nextSongBtn = document.getElementById('next-song');
-            const musicItems = musicList.querySelectorAll('li');
-            let currentSongIndex = 0;
+from flask import Flask, request, redirect, url_for, render_template, send_from_directory, jsonify
+import os
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
-            // Function to load the last state from localStorage
-            function loadLastState() {
-                const lastSongIndex = localStorage.getItem('currentSongIndex');
-                const lastSongTime = localStorage.getItem('currentSongTime');
-                if (lastSongIndex !== null && musicItems[lastSongIndex]) {
-                    currentSongIndex = parseInt(lastSongIndex, 10);
-                    playSong(currentSongIndex, lastSongTime);
-                } else if (musicItems.length > 0) {
-                    playSong(0);
-                }
-            }
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads/music'
+app.config['IMAGE_FOLDER'] = 'uploads/images'
+app.config['CHAT_LOG'] = 'chat.log'
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小为100MB
 
-            toggleMusicListBtn.addEventListener('click', () => {
-                musicList.style.display = musicList.style.display === 'none' ? 'block' : 'none';
-            });
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+if not os.path.exists(app.config['IMAGE_FOLDER']):
+    os.makedirs(app.config['IMAGE_FOLDER'])
 
-            playPauseBtn.addEventListener('click', () => {
-                if (backgroundMusic.paused) {
-                    backgroundMusic.play();
-                    backgroundMusic.muted = false; // 取消静音
-                    playPauseBtn.textContent = 'Pause';
-                } else {
-                    backgroundMusic.pause();
-                    playPauseBtn.textContent = 'Play';
-                }
-            });
+DEFAULT_VIDEO_URL = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
 
-            prevSongBtn.addEventListener('click', () => {
-                currentSongIndex = (currentSongIndex > 0) ? currentSongIndex - 1 : musicItems.length - 1;
-                playSong(currentSongIndex);
-            });
+@app.route('/')
+def index():
+    music_files = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.endswith(('.mp3', '.m4a'))]
+    return render_template('index.html', video_url=DEFAULT_VIDEO_URL, music_files=music_files)
 
-            nextSongBtn.addEventListener('click', () => {
-                currentSongIndex = (currentSongIndex < musicItems.length - 1) ? currentSongIndex + 1 : 0;
-                playSong(currentSongIndex);
-            });
+@app.route('/chat', methods=['GET', 'POST'])
+def chat():
+    music_files = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.endswith(('.mp3', '.m4a'))]
+    if request.method == 'POST':
+        username = request.form['username']
+        message = request.form['message']
+        file = request.files.get('file')
+        file_url = None
 
-            function playSong(index, time = 0) {
-                const songUrl = musicItems[index].getAttribute('data-url');
-                backgroundMusic.src = songUrl;
-                backgroundMusic.muted = false; // 取消静音
-                backgroundMusic.currentTime = time;
-                backgroundMusic.play();
-                playPauseBtn.textContent = 'Pause';
-                localStorage.setItem('currentSongIndex', index);
-            }
+        if file:
+            filename = secure_filename(file.filename)
+            if file.content_type.startswith('image/'):
+                file_path = os.path.join(app.config['IMAGE_FOLDER'], filename)
+                file.save(file_path)
+                file_url = url_for('uploaded_image', filename=filename)
+            else:
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                file_url = url_for('uploaded_file', filename=filename)
 
-            musicItems.forEach((item, index) => {
-                item.addEventListener('click', () => {
-                    playSong(index);
-                    currentSongIndex = index;
-                });
-            });
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if file_url:
+            chat_entry = f'{timestamp} - {username}: {message} <img src="{file_url}">\n'
+        else:
+            chat_entry = f'{timestamp} - {username}: {message}\n'
 
-            backgroundMusic.addEventListener('timeupdate', () => {
-                localStorage.setItem('currentSongTime', backgroundMusic.currentTime);
-            });
+        with open(app.config['CHAT_LOG'], 'a') as f:
+            f.write(chat_entry)
 
-            // Auto-play the last song or the first song
-            loadLastState();
-        });
-    </script>
-</body>
-</html>
+        return redirect(url_for('chat'))
+
+    chat_history = []
+    if os.path.exists(app.config['CHAT_LOG']):
+        with open(app.config['CHAT_LOG'], 'r') as f:
+            chat_history = f.readlines()
+
+    return render_template('chat.html', chat_history=chat_history, music_files=music_files)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    username = request.form['username']
+    message = request.form['message']
+    file = request.files.get('file')
+    file_url = None
+
+    if file:
+        filename = secure_filename(file.filename)
+        if file.content_type.startswith('image/'):
+            file_path = os.path.join(app.config['IMAGE_FOLDER'], filename)
+            file.save(file_path)
+            file_url = url_for('uploaded_image', filename=filename)
+        else:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            file_url = url_for('uploaded_file', filename=filename)
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if file_url:
+        chat_entry = f'{timestamp} - {username}: {message} <img src="{file_url}">\n'
+    else:
+        chat_entry = f'{timestamp} - {username}: {message}\n'
+
+    with open(app.config['CHAT_LOG'], 'a') as f:
+        f.write(chat_entry)
+
+    return jsonify(success=True, message=chat_entry)
+
+@app.route('/uploads/music/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/uploads/images/<filename>')
+def uploaded_image(filename):
+    return send_from_directory(app.config['IMAGE_FOLDER'], filename)
+
+@app.route('/upload_music', methods=['GET', 'POST'])
+def upload_music():
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and (file.filename.endswith('.mp3') or file.filename.endswith('.m4a')):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            return redirect(url_for('upload_music'))
+
+    return render_template('upload_music.html')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
