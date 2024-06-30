@@ -32,8 +32,9 @@ def chat():
             file_url = url_for('uploaded_file', filename=filename)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        chat_entry = f'{timestamp} - {username}: {message} {"<img src=\'" + file_url + "\'>" if file_url else ""}\n'
         with open(app.config['CHAT_LOG'], 'a') as f:
-            f.write(f'{timestamp} - {username}: {message} {file_url or ""}\n')
+            f.write(chat_entry)
 
         return redirect(url_for('chat'))
 
@@ -47,6 +48,12 @@ def chat():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/clear_chat')
+def clear_chat():
+    if os.path.exists(app.config['CHAT_LOG']):
+        os.remove(app.config['CHAT_LOG'])
+    return redirect(url_for('chat'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
