@@ -4,23 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        label, input, textarea {
+            width: 100%;
+            margin: 5px 0;
+        }
+        input[type="submit"] {
+            width: auto;
+        }
+        .chat-history {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+        .chat-history p {
+            border-bottom: 1px solid #ccc;
+            padding: 5px;
+        }
+        a {
+            text-align: center;
+            display: block;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
 </head>
 <body>
     <h1>Chat Room</h1>
     <form action="/chat" method="post" enctype="multipart/form-data">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
-        <br>
         <label for="message">Message:</label>
         <textarea id="message" name="message" required></textarea>
-        <br>
         <label for="file">Upload an image:</label>
         <input type="file" id="file" name="file" accept="image/*">
-        <br>
         <input type="submit" value="Send">
     </form>
     <h2>Chat History:</h2>
-    <div>
+    <div class="chat-history">
         {% for entry in chat_history %}
             <p>{{ entry }}</p>
         {% endfor %}
