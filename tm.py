@@ -32,7 +32,11 @@ def chat():
             file_url = url_for('uploaded_file', filename=filename)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        chat_entry = f'{timestamp} - {username}: {message} {"<img src=\'" + file_url + "\'>" if file_url else ""}\n'
+        if file_url:
+            chat_entry = f'{timestamp} - {username}: {message} <img src="{file_url}">\n'
+        else:
+            chat_entry = f'{timestamp} - {username}: {message}\n'
+
         with open(app.config['CHAT_LOG'], 'a') as f:
             f.write(chat_entry)
 
