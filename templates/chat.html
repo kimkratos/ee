@@ -87,7 +87,7 @@
 </head>
 <body>
     <h1>Chat Room</h1>
-    <form id="chat-form" enctype="multipart/form-data">
+    <form id="chat-form" action="/chat" method="post" enctype="multipart/form-data">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <label for="message">Message:</label>
@@ -119,26 +119,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             const chatForm = document.getElementById('chat-form');
             const chatHistory = document.getElementById('chat-history');
-
-            chatForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(chatForm);
-                fetch('/send_message', {
-                    method: 'POST',
-                    body: formData,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const newMessage =document.createElement('p');
-                        newMessage.innerHTML = data.message;
-                        chatHistory.appendChild(newMessage);
-                        chatForm.reset();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
-
             const musicList = document.getElementById('music-list');
             const toggleMusicListBtn = document.getElementById('toggle-music-list');
             const backgroundMusic = document.getElementById('background-music');
@@ -148,7 +128,6 @@
             const musicItems = musicList.querySelectorAll('li');
             let currentSongIndex = 0;
 
-            // Function to load the last state from localStorage
             function loadLastState() {
                 const lastSongIndex = localStorage.getItem('currentSongIndex');
                 const lastSongTime = localStorage.getItem('currentSongTime');
@@ -159,6 +138,22 @@
                     playSong(0);
                 }
             }
+
+            chatForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(chatForm);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', chatForm.action, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const newMessage = document.createElement('p');
+                        newMessage.innerHTML = xhr.responseText;
+                        chatHistory.appendChild(newMessage);
+                        chatForm.reset();
+                    }
+                };
+                xhr.send(formData);
+            });
 
             toggleMusicListBtn.addEventListener('click', () => {
                 musicList.style.display = musicList.style.display === 'none' ? 'block' : 'none';
