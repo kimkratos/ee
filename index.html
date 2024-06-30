@@ -38,73 +38,33 @@
         .chat-button:hover {
             background-color: #45a049;
         }
-        .music-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .music-controls button {
-            margin: 5px;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .music-controls button:hover {
-            background-color: #45a049;
-        }
         .music-list {
             display: none;
             list-style-type: none;
             padding: 0;
+            margin: 10px 0;
+            width: 100%;
         }
         .music-list li {
+            padding: 5px;
+            text-align: center;
+            background-color: #f0f0f0;
             margin: 5px 0;
             cursor: pointer;
-            color: #4CAF50;
         }
         .music-list li:hover {
-            text-decoration: underline;
+            background-color: #ddd;
+        }
+        .music-controls {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .music-controls button {
+            margin: 0 5px;
+            padding: 5px 10px;
         }
     </style>
-    <script>
-        let currentTrack = 0;
-        let musicFiles = {{ music_files | safe }};
-        
-        function playTrack(index) {
-            currentTrack = index;
-            let audio = document.getElementById('background-music');
-            audio.src = musicFiles[index];
-            audio.play();
-        }
-
-        function nextTrack() {
-            currentTrack = (currentTrack + 1) % musicFiles.length;
-            playTrack(currentTrack);
-        }
-
-        function prevTrack() {
-            currentTrack = (currentTrack - 1 + musicFiles.length) % musicFiles.length;
-            playTrack(currentTrack);
-        }
-
-        function toggleMusicList() {
-            let list = document.getElementById('music-list');
-            if (list.style.display === 'none') {
-                list.style.display = 'block';
-            } else {
-                list.style.display = 'none';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('background-music').addEventListener('ended', nextTrack);
-            playTrack(0);
-        });
-    </script>
 </head>
 <body>
     <a href="{{ url_for('chat') }}" class="chat-button">Chat Room</a>
@@ -113,16 +73,65 @@
         <source src="{{ video_url }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-    <div class="music-controls">
-        <button onclick="prevTrack()">Previous</button>
-        <button onclick="nextTrack()">Next</button>
-        <button onclick="toggleMusicList()">Toggle Music List</button>
-    </div>
+    <button id="toggle-music-list">Show Music List</button>
     <ul id="music-list" class="music-list">
-        {% for music in music_files %}
-            <li onclick="playTrack({{ loop.index0 }})">{{ music }}</li>
+        {% for music_file in music_files %}
+            <li data-url="{{ url_for('uploaded_file', filename=music_file) }}">{{ music_file }}</li>
         {% endfor %}
     </ul>
+    <div class="music-controls">
+        <button id="prev-song">Previous</button>
+        <button id="play-pause">Play/Pause</button>
+        <button id="next-song">Next</button>
+    </div>
     <audio id="background-music" autoplay loop></audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const musicList = document.getElementById('music-list');
+            const toggleMusicListBtn = document.getElementById('toggle-music-list');
+            const backgroundMusic = document.getElementById('background-music');
+            const playPauseBtn = document.getElementById('play-pause');
+            const prevSongBtn = document.getElementById('prev-song');
+            const nextSongBtn = document.getElementById('next-song');
+            const musicItems = musicList.querySelectorAll('li');
+            let currentSongIndex = 0;
+
+            toggleMusicListBtn.addEventListener('click', () => {
+                musicList.style.display = musicList.style.display === 'none' ? 'block' : 'none';
+            });
+
+            playPauseBtn.addEventListener('click', () => {
+                if (backgroundMusic.paused) {
+                    backgroundMusic.play();
+                    playPauseBtn.textContent = 'Pause';
+                } else {
+                    backgroundMusic.pause();
+                    playPauseBtn.textContent = 'Play';
+                }
+            });
+
+            prevSongBtn.addEventListener('click', () => {
+                currentSongIndex = (currentSongIndex > 0) ? currentSongIndex - 1 : musicItems.length - 1;
+                playSong(currentSongIndex);
+            });
+
+            nextSongBtn.addEventListener('click', () => {
+                currentSongIndex = (currentSongIndex < musicItems.length - 1) ? currentSongIndex + 1 : 0;
+                playSong(currentSongIndex);
+            });
+
+            function playSong(index) {
+                const songUrl = musicItems[index].getAttribute('data-url');
+                backgroundMusic.src = songUrl;
+                backgroundMusic.play();
+                playPauseBtn.textContent = 'Pause';
+            }
+
+            // Auto-play the first song
+            if (musicItems.length > 0) {
+                playSong(0);
+            }
+        });
+    </script>
 </body>
 </html>
