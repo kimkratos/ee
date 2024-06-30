@@ -57,26 +57,9 @@
             margin-top: 20px;
             font-size: 1.2em;
         }
-    </style>
-</head>
-<body>
-    <h1>Chat Room</h1>
-    <form action="/chat" method="post" enctype="multipart/form-data">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <label for="message">Message:</label>
-        <textarea id="message" name="message" required></textarea>
-        <label for="file">Upload an image:</label>
-        <input type="file" id="file" name="file" accept="image/*">
-        <input type="submit" value="Send">
-    </form>
-    <h2>Chat History:</h2>
-    <div class="chat-history">
-        {% for entry in chat_history %}
-            <p>{{ entry | safe }}</p>
-        {% endfor %}
-    </div>
-    <a href="{{ url_for('index') }}">Back to Home</a>
-    <audio id="background-music" src="{{ music_url }}" autoplay loop></audio>
-</body>
-</html>
+        .music-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .music-controls button
