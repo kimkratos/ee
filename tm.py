@@ -5,11 +5,14 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/music'
+app.config['IMAGE_FOLDER'] = 'uploads/images'
 app.config['CHAT_LOG'] = 'chat.log'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小为100MB
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+if not os.path.exists(app.config['IMAGE_FOLDER']):
+    os.makedirs(app.config['IMAGE_FOLDER'])
 
 DEFAULT_VIDEO_URL = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
 
@@ -29,9 +32,14 @@ def chat():
 
         if file:
             filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            file_url = url_for('uploaded_file', filename=f'music/{filename}')
+            if file.content_type.startswith('image/'):
+                file_path = os.path.join(app.config['IMAGE_FOLDER'], filename)
+                file.save(file_path)
+                file_url = url_for('uploaded_image', filename=filename)
+            else:
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                file_url = url_for('uploaded_file', filename=f'music/{filename}')
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if file_url:
@@ -54,6 +62,10 @@ def chat():
 @app.route('/uploads/music/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/uploads/images/<filename>')
+def uploaded_image(filename):
+    return send_from_directory(app.config['IMAGE_FOLDER'], filename)
 
 @app.route('/upload_music', methods=['GET', 'POST'])
 def upload_music():
