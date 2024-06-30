@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template, send_from_directory
+from flask import Flask, request, redirect, url_for, render_template, send_from_directory, jsonify
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -6,22 +6,27 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['CHAT_LOG'] = 'chat.log'
-app.config['MUSIC_FILE'] = 'music.m4a'
+app.config['MUSIC_FOLDER'] = 'music'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小为100MB
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+if not os.path.exists(app.config['MUSIC_FOLDER']):
+    os.makedirs(app.config['MUSIC_FOLDER'])
+
 DEFAULT_VIDEO_URL = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
 
 @app.route('/')
 def index():
-    music_url = url_for('uploaded_file', filename=app.config['MUSIC_FILE'])
-    return render_template('index.html', video_url=DEFAULT_VIDEO_URL, music_url=music_url)
+    music_files = os.listdir(app.config['MUSIC_FOLDER'])
+    music_files = [url_for('uploaded_music', filename=filename) for filename in music_files]
+    return render_template('index.html', video_url=DEFAULT_VIDEO_URL, music_files=music_files)
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
-    music_url = url_for('uploaded_file', filename=app.config['MUSIC_FILE'])
+    music_files = os.listdir(app.config['MUSIC_FOLDER'])
+    music_files = [url_for('uploaded_music', filename=filename) for filename in music_files]
     if request.method == 'POST':
         username = request.form['username']
         message = request.form['message']
@@ -50,19 +55,23 @@ def chat():
         with open(app.config['CHAT_LOG'], 'r') as f:
             chat_history = f.readlines()
 
-    return render_template('chat.html', chat_history=chat_history, music_url=music_url)
+    return render_template('chat.html', chat_history=chat_history, music_files=music_files)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/music/<filename>')
+def uploaded_music(filename):
+    return send_from_directory(app.config['MUSIC_FOLDER'], filename)
 
 @app.route('/upload_music', methods=['GET', 'POST'])
 def upload_music():
     if request.method == 'POST':
         file = request.files.get('file')
         if file and (file.filename.endswith('.mp3') or file.filename.endswith('.m4a')):
-            filename = secure_filename(app.config['MUSIC_FILE'])
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['MUSIC_FOLDER'], filename)
             file.save(file_path)
             return redirect(url_for('upload_music'))
 
