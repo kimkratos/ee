@@ -6,6 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['CHAT_LOG'] = 'chat.log'
+app.config['MUSIC_FILE'] = 'music.m4a'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小为100MB
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -15,10 +16,12 @@ DEFAULT_VIDEO_URL = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
 
 @app.route('/')
 def index():
-    return render_template('index.html', video_url=DEFAULT_VIDEO_URL)
+    music_url = url_for('uploaded_file', filename=app.config['MUSIC_FILE'])
+    return render_template('index.html', video_url=DEFAULT_VIDEO_URL, music_url=music_url)
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
+    music_url = url_for('uploaded_file', filename=app.config['MUSIC_FILE'])
     if request.method == 'POST':
         username = request.form['username']
         message = request.form['message']
@@ -47,12 +50,23 @@ def chat():
         with open(app.config['CHAT_LOG'], 'r') as f:
             chat_history = f.readlines()
 
-    return render_template('chat.html', chat_history=chat_history)
+    return render_template('chat.html', chat_history=chat_history, music_url=music_url)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/upload_music', methods=['GET', 'POST'])
+def upload_music():
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and (file.filename.endswith('.mp3') or file.filename.endswith('.m4a')):
+            filename = secure_filename(app.config['MUSIC_FILE'])
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            return redirect(url_for('upload_music'))
+
+    return render_template('upload_music.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
