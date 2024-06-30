@@ -10,7 +10,11 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    video_url = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
+    local_video_path = os.path.join(app.config['UPLOAD_FOLDER'], 'video.mp4')
+    if os.path.exists(local_video_path):
+        video_url = url_for('uploaded_file', filename='video.mp4')
+    return render_template('index.html', video_url=video_url)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
