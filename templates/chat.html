@@ -106,7 +106,7 @@
     <button id="toggle-music-list">Show Music List</button>
     <ul id="music-list" class="music-list">
         {% for music_file in music_files %}
-            <li data-url="{{ url_for('uploaded_file', filename='music/' ~ music_file) }}">{{ music_file }}</li>
+            <li data-url="{{ url_for('uploaded_file', filename=~ music_file) }}">{{ music_file }}</li>
         {% endfor %}
     </ul>
     <div class="music-controls">
