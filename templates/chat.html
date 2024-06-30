@@ -45,11 +45,29 @@
             padding: 5px;
             word-wrap: break-word;
         }
+        .chat-history img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 10px;
+        }
         a {
             text-align: center;
             display: block;
             margin-top: 20px;
             font-size: 1.2em;
+        }
+        .clear-chat {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .clear-chat:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
@@ -67,9 +85,10 @@
     <h2>Chat History:</h2>
     <div class="chat-history">
         {% for entry in chat_history %}
-            <p>{{ entry }}</p>
+            <p>{{ entry | safe }}</p>
         {% endfor %}
     </div>
     <a href="{{ url_for('index') }}">Back to Home</a>
+    <a href="{{ url_for('clear_chat') }}" class="clear-chat">Clear Chat</a>
 </body>
 </html>
