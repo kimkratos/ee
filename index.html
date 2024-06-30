@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template, send_from_directory, jsonify
+from flask import Flask, request, redirect, url_for, render_template, send_from_directory
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -58,35 +58,6 @@ def chat():
             chat_history = f.readlines()
 
     return render_template('chat.html', chat_history=chat_history, music_files=music_files)
-
-@app.route('/send_message', methods=['POST'])
-def send_message():
-    username = request.form['username']
-    message = request.form['message']
-    file = request.files.get('file')
-    file_url = None
-
-    if file:
-        filename = secure_filename(file.filename)
-        if file.content_type.startswith('image/'):
-            file_path = os.path.join(app.config['IMAGE_FOLDER'], filename)
-            file.save(file_path)
-            file_url = url_for('uploaded_image', filename=filename)
-        else:
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            file_url = url_for('uploaded_file', filename=filename)
-
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if file_url:
-        chat_entry = f'{timestamp} - {username}: {message} <img src="{file_url}">\n'
-    else:
-        chat_entry = f'{timestamp} - {username}: {message}\n'
-
-    with open(app.config['CHAT_LOG'], 'a') as f:
-        f.write(chat_entry)
-
-    return jsonify(success=True, message=chat_entry)
 
 @app.route('/uploads/music/<filename>')
 def uploaded_file(filename):
