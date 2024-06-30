@@ -127,6 +127,12 @@
                 playPauseBtn.textContent = 'Pause';
             }
 
+            musicItems.forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    playSong(index);
+                });
+            });
+
             // Auto-play the first song
             if (musicItems.length > 0) {
                 playSong(0);
