@@ -4,14 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        video {
+            max-width: 100%;
+            height: auto;
+        }
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+        }
+        a {
+            text-align: center;
+            display: block;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
 </head>
 <body>
     <h1>Stream Video</h1>
-    <video width="600" controls>
+    <video controls>
         <source src="{{ video_url }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-    <br>
     <a href="{{ url_for('chat') }}">Chat Room</a>
 </body>
 </html>
