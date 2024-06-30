@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, url_for, render_template, send_from_directory
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -30,8 +31,9 @@ def chat():
             file.save(file_path)
             file_url = url_for('uploaded_file', filename=filename)
 
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open(app.config['CHAT_LOG'], 'a') as f:
-            f.write(f'{username}: {message} {file_url or ""}\n')
+            f.write(f'{timestamp} - {username}: {message} {file_url or ""}\n')
 
         return redirect(url_for('chat'))
 
