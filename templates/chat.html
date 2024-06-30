@@ -106,7 +106,7 @@
     <button id="toggle-music-list">Show Music List</button>
     <ul id="music-list" class="music-list">
         {% for music_file in music_files %}
-            <li data-url="{{ url_for('uploaded_file', filename= music_file) }}">{{ music_file }}</li>
+            <li data-url="{{ url_for('uploaded_file', filename=music_file) }}">{{ music_file }}</li>
         {% endfor %}
     </ul>
     <div class="music-controls">
@@ -114,7 +114,7 @@
         <button id="play-pause">Play/Pause</button>
         <button id="next-song">Next</button>
     </div>
-    <audio id="background-music" autoplay loop></audio>
+    <audio id="background-music" autoplay loop muted></audio>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const musicList = document.getElementById('music-list');
@@ -126,6 +126,18 @@
             const musicItems = musicList.querySelectorAll('li');
             let currentSongIndex = 0;
 
+            // Function to load the last state from localStorage
+            function loadLastState() {
+                const lastSongIndex = localStorage.getItem('currentSongIndex');
+                const lastSongTime = localStorage.getItem('currentSongTime');
+                if (lastSongIndex !== null && musicItems[lastSongIndex]) {
+                    currentSongIndex = parseInt(lastSongIndex, 10);
+                    playSong(currentSongIndex, lastSongTime);
+                } else if (musicItems.length > 0) {
+                    playSong(0);
+                }
+            }
+
             toggleMusicListBtn.addEventListener('click', () => {
                 musicList.style.display = musicList.style.display === 'none' ? 'block' : 'none';
             });
@@ -133,6 +145,7 @@
             playPauseBtn.addEventListener('click', () => {
                 if (backgroundMusic.paused) {
                     backgroundMusic.play();
+                    backgroundMusic.muted = false; // 取消静音
                     playPauseBtn.textContent = 'Pause';
                 } else {
                     backgroundMusic.pause();
@@ -150,11 +163,14 @@
                 playSong(currentSongIndex);
             });
 
-            function playSong(index) {
+            function playSong(index, time = 0) {
                 const songUrl = musicItems[index].getAttribute('data-url');
                 backgroundMusic.src = songUrl;
+                backgroundMusic.muted = false; // 取消静音
+                backgroundMusic.currentTime = time;
                 backgroundMusic.play();
                 playPauseBtn.textContent = 'Pause';
+                localStorage.setItem('currentSongIndex', index);
             }
 
             musicItems.forEach((item, index) => {
@@ -164,10 +180,12 @@
                 });
             });
 
-            // Auto-play the first song
-            if (musicItems.length > 0) {
-                playSong(0);
-            }
+            backgroundMusic.addEventListener('timeupdate', () => {
+                localStorage.setItem('currentSongTime', backgroundMusic.currentTime);
+            });
+
+            // Auto-play the last song or the first song
+            loadLastState();
         });
     </script>
 </body>
