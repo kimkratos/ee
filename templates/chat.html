@@ -87,7 +87,7 @@
 </head>
 <body>
     <h1>Chat Room</h1>
-    <form action="/chat" method="post" enctype="multipart/form-data">
+    <form id="chat-form" enctype="multipart/form-data">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <label for="message">Message:</label>
@@ -97,7 +97,7 @@
         <input type="submit" value="Send">
     </form>
     <h2>Chat History:</h2>
-    <div class="chat-history">
+    <div class="chat-history" id="chat-history">
         {% for entry in chat_history %}
             <p>{{ entry | safe }}</p>
         {% endfor %}
@@ -117,6 +117,28 @@
     <audio id="background-music" autoplay loop muted></audio>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const chatForm = document.getElementById('chat-form');
+            const chatHistory = document.getElementById('chat-history');
+
+            chatForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(chatForm);
+                fetch('/send_message', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const newMessage =document.createElement('p');
+                        newMessage.innerHTML = data.message;
+                        chatHistory.appendChild(newMessage);
+                        chatForm.reset();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+
             const musicList = document.getElementById('music-list');
             const toggleMusicListBtn = document.getElementById('toggle-music-list');
             const backgroundMusic = document.getElementById('background-music');
