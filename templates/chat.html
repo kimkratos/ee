@@ -182,7 +182,18 @@
 
             function playSong(index, time = 0) {
                 const songUrl = musicItems[index].getAttribute('data-url');
-                backgroundMusic.src = songUrl;
+                const cachedSong = localStorage.getItem(`cachedSong_${songUrl}`);
+                if (cachedSong) {
+                    backgroundMusic.src = cachedSong;
+                } else {
+                    fetch(songUrl)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            backgroundMusic.src = url;
+                            localStorage.setItem(`cachedSong_${songUrl}`, url);
+                        });
+                }
                 backgroundMusic.muted = false; // 取消静音
                 backgroundMusic.currentTime = time;
                 backgroundMusic.play();
