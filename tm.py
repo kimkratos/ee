@@ -8,12 +8,15 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+DEFAULT_VIDEO_URL = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
+
 @app.route('/')
 def index():
-    video_url = "https://www.yabo.gg/wp-content/uploads/2023/09/01.mp4"
     local_video_path = os.path.join(app.config['UPLOAD_FOLDER'], 'video.mp4')
     if os.path.exists(local_video_path):
         video_url = url_for('uploaded_file', filename='video.mp4')
+    else:
+        video_url = DEFAULT_VIDEO_URL
     return render_template('index.html', video_url=video_url)
 
 @app.route('/upload', methods=['POST'])
