@@ -38,7 +38,73 @@
         .chat-button:hover {
             background-color: #45a049;
         }
+        .music-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .music-controls button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .music-controls button:hover {
+            background-color: #45a049;
+        }
+        .music-list {
+            display: none;
+            list-style-type: none;
+            padding: 0;
+        }
+        .music-list li {
+            margin: 5px 0;
+            cursor: pointer;
+            color: #4CAF50;
+        }
+        .music-list li:hover {
+            text-decoration: underline;
+        }
     </style>
+    <script>
+        let currentTrack = 0;
+        let musicFiles = {{ music_files | safe }};
+        
+        function playTrack(index) {
+            currentTrack = index;
+            let audio = document.getElementById('background-music');
+            audio.src = musicFiles[index];
+            audio.play();
+        }
+
+        function nextTrack() {
+            currentTrack = (currentTrack + 1) % musicFiles.length;
+            playTrack(currentTrack);
+        }
+
+        function prevTrack() {
+            currentTrack = (currentTrack - 1 + musicFiles.length) % musicFiles.length;
+            playTrack(currentTrack);
+        }
+
+        function toggleMusicList() {
+            let list = document.getElementById('music-list');
+            if (list.style.display === 'none') {
+                list.style.display = 'block';
+            } else {
+                list.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('background-music').addEventListener('ended', nextTrack);
+            playTrack(0);
+        });
+    </script>
 </head>
 <body>
     <a href="{{ url_for('chat') }}" class="chat-button">Chat Room</a>
@@ -47,6 +113,16 @@
         <source src="{{ video_url }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-    <audio id="background-music" src="{{ music_url }}" autoplay loop></audio>
+    <div class="music-controls">
+        <button onclick="prevTrack()">Previous</button>
+        <button onclick="nextTrack()">Next</button>
+        <button onclick="toggleMusicList()">Toggle Music List</button>
+    </div>
+    <ul id="music-list" class="music-list">
+        {% for music in music_files %}
+            <li onclick="playTrack({{ loop.index0 }})">{{ music }}</li>
+        {% endfor %}
+    </ul>
+    <audio id="background-music" autoplay loop></audio>
 </body>
 </html>
