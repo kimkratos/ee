@@ -4,17 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        video {
+            max-width: 100%;
+            height: auto;
+        }
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+        }
+        .chat-button {
+            text-align: center;
+            display: block;
+            margin: 20px 0;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .chat-button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload and Stream Video</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="video/*" required>
-        <input type="submit" value="Upload">
-    </form>
-    <h2>Current Video:</h2>
-    <video width="600" controls>
-        <source src="{{ url_for('uploaded_file', filename='video.mp4') }}" type="video/mp4">
+    <a href="{{ url_for('chat') }}" class="chat-button">Chat Room</a>
+    <h1>Stream Video</h1>
+    <video controls>
+        <source src="{{ video_url }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
+    <audio id="background-music" src="{{ music_url }}" autoplay loop></audio>
 </body>
 </html>
