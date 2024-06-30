@@ -96,6 +96,18 @@
             const musicItems = musicList.querySelectorAll('li');
             let currentSongIndex = 0;
 
+            // Function to load the last state from localStorage
+            function loadLastState() {
+                const lastSongIndex = localStorage.getItem('currentSongIndex');
+                const lastSongTime = localStorage.getItem('currentSongTime');
+                if (lastSongIndex !== null && musicItems[lastSongIndex]) {
+                    currentSongIndex = parseInt(lastSongIndex, 10);
+                    playSong(currentSongIndex, lastSongTime);
+                } else if (musicItems.length > 0) {
+                    playSong(0);
+                }
+            }
+
             toggleMusicListBtn.addEventListener('click', () => {
                 musicList.style.display = musicList.style.display === 'none' ? 'block' : 'none';
             });
@@ -121,12 +133,14 @@
                 playSong(currentSongIndex);
             });
 
-            function playSong(index) {
+            function playSong(index, time = 0) {
                 const songUrl = musicItems[index].getAttribute('data-url');
                 backgroundMusic.src = songUrl;
                 backgroundMusic.muted = false; // 取消静音
+                backgroundMusic.currentTime = time;
                 backgroundMusic.play();
                 playPauseBtn.textContent = 'Pause';
+                localStorage.setItem('currentSongIndex', index);
             }
 
             musicItems.forEach((item, index) => {
@@ -136,16 +150,12 @@
                 });
             });
 
-            // Auto-play the first song
-            if (musicItems.length > 0) {
-                const songUrl = musicItems[0].getAttribute('data-url');
-                backgroundMusic.src = songUrl;
-                backgroundMusic.play().then(() => {
-                    backgroundMusic.muted = false; // 取消静音
-                }).catch(error => {
-                    console.log('Autoplay failed:', error);
-                });
-            }
+            backgroundMusic.addEventListener('timeupdate', () => {
+                localStorage.setItem('currentSongTime', backgroundMusic.currentTime);
+            });
+
+            // Auto-play the last song or the first song
+            loadLastState();
         });
     </script>
 </body>
