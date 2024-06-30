@@ -105,7 +105,7 @@
     <a href="{{ url_for('index') }}">Back to Home</a>
     <button id="toggle-music-list">Show Music List</button>
     <ul id="music-list" class="music-list">
-        {% for music_file in music_files %}
+        {% for music_file in music_files|sort %}
             <li data-url="{{ url_for('uploaded_file', filename=music_file) }}">{{ music_file }}</li>
         {% endfor %}
     </ul>
