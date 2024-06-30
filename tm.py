@@ -1,23 +1,32 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, send_from_directory, render_template
+import os
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 限制上传文件大小为100MB
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 @app.route('/')
-def home():
-    return '''
-        <form action="/redirect" method="post">
-            <label for="url">Enter URL:</label>
-            <input type="text" id="url" name="url" required>
-            <input type="submit" value="Go">
-        </form>
-    '''
+def index():
+    return render_template('index.html')
 
-@app.route('/redirect', methods=['POST'])
-def redirect_to_url():
-    url = request.form['url']
-    if not url.startswith('http'):
-        url = 'http://' + url
-    return redirect(f"/proxy/?url={url}")
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return redirect(url_for('index'))
+    file = request.files['file']
+    if file.filename == '':
+        return redirect(url_for('index'))
+    if file:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'video.mp4')
+        file.save(file_path)
+        return redirect(url_for('index'))
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
