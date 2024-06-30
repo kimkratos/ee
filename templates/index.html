@@ -1,1 +1,21 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streaming</title>
+</head>
+<body>
+    <h1>Upload and Stream Video</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="video/*" required>
+        <input type="submit" value="Upload">
+    </form>
+    <h2>Current Video:</h2>
+    <video width="600" controls>
+        <source src="{{ url_for('uploaded_file', filename='video.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</body>
+</html>
