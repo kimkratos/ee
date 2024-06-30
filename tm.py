@@ -53,11 +53,6 @@ def chat():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-@app.route('/clear_chat')
-def clear_chat():
-    if os.path.exists(app.config['CHAT_LOG']):
-        os.remove(app.config['CHAT_LOG'])
-    return redirect(url_for('chat'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
